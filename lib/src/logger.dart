@@ -6,6 +6,6 @@ class PollingTimerLogger {
   PollingTimerLogger._();
 
   static void log(PollingTimer instance, String msg) {
-    debugPrint('[${instance.hashCode}] - $msg');
+    debugPrint('PollingTimer[${instance.hashCode}] - $msg');
   }
 }

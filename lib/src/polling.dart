@@ -9,25 +9,25 @@ class PollingTimer {
   Timer? _timer;
   Stopwatch? _watch;
 
-  /// timer delay sec
-  final int _delaySec;
+  /// timer delay
+  final Duration _delay;
 
-  /// timer interval sec
-  final int _intervalSec;
+  /// timer interval
+  final Duration _interval;
 
-  /// timer duration sec
-  final int _durationSec;
+  /// timer duration
+  final Duration _duration;
 
   /// used to mark async task
   int _tag = 0;
 
   PollingTimer({
-    required int intervalSec,
-    required int durationSec,
-    int delaySec = 0,
-  })  : _durationSec = durationSec,
-        _intervalSec = intervalSec,
-        _delaySec = delaySec;
+    required Duration interval,
+    required Duration duration,
+    Duration delay = Duration.zero,
+  })  : _duration = duration,
+        _interval = interval,
+        _delay = delay;
 
   /// Start polling timer
   launch(
@@ -61,8 +61,7 @@ class PollingTimer {
     } else {
       _delayCompleter = c = Completer();
     }
-    Future.delayed(Duration(seconds: _delaySec))
-        .then((value) => _delayCompleter?.complete(true));
+    Future.delayed(_delay).then((value) => _delayCompleter?.complete(true));
     return _delayCompleter!;
   }
 
@@ -81,11 +80,10 @@ class PollingTimer {
       // resume the polling timer.
       _watch?.start();
       int elapsedMilliSec = elapsed.inMilliseconds;
-      int remainMilliSec =
-          _intervalSec * 1000 - elapsedMilliSec % (_intervalSec * 1000);
+      int remainMilliSec = _interval.inMilliseconds -
+          elapsedMilliSec % (_interval.inMilliseconds);
       final remainDuration = Duration(milliseconds: remainMilliSec);
-      PollingTimerLogger.log(
-          this, "remain $remainDuration in previous interval");
+      PollingTimerLogger.log(this, "remain $remainDuration in pre interval");
       final t = await Future.delayed(remainDuration, () => curTag);
       if (t != _tag) {
         // Discard expired async task.
@@ -95,8 +93,8 @@ class PollingTimer {
         onTick.call();
       }
     }
-    _timer = Timer.periodic(Duration(seconds: _intervalSec), (timer) {
-      if (elapsed >= Duration(seconds: _durationSec)) {
+    _timer = Timer.periodic(_interval, (timer) {
+      if (elapsed >= _duration) {
         release();
         onTick.call();
         onFinish?.call();
@@ -108,8 +106,7 @@ class PollingTimer {
 
   /// Pause the polling timer
   pause() {
-    PollingTimerLogger.log(this, 'stop');
-    PollingTimerLogger.log(this, 'work time: $elapsed');
+    PollingTimerLogger.log(this, 'stop. Work time: $elapsed');
     _timer?.cancel();
     _watch?.stop();
     _tag = DateTime.now().millisecondsSinceEpoch;
@@ -122,8 +119,7 @@ class PollingTimer {
 
   /// Release the polling timer
   release() {
-    PollingTimerLogger.log(this, 'release');
-    PollingTimerLogger.log(this, 'work time: $elapsed');
+    PollingTimerLogger.log(this, 'release. Work time: $elapsed');
     _timer?.cancel();
     _timer = null;
     _watch?.reset();
@@ -136,12 +132,10 @@ class PollingTimer {
 
   Duration get elapsed {
     final e = _watch?.elapsed ?? Duration.zero;
-    return e > Duration(seconds: _durationSec)
-        ? Duration(seconds: _durationSec)
-        : e;
+    return e > _duration ? _duration : e;
   }
 
   bool get isRunning => _watch?.isRunning ?? false;
 
-  Duration get remain => Duration(seconds: _durationSec) - elapsed;
+  Duration get remain => _duration - elapsed;
 }
