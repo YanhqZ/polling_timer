@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'pages/feature_page.dart';
+import 'pages/clock_page.dart';
 import 'pages/verification_code_page.dart';
 
 void main() {
@@ -39,7 +39,7 @@ class MyHomePage extends StatelessWidget {
               onTap: () {
                 Navigator.of(context)
                     .push(MaterialPageRoute(builder: (context) {
-                  return const FeaturePage();
+                  return const ClockPage();
                 }));
               },
               child: const Padding(

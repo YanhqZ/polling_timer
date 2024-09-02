@@ -19,6 +19,20 @@ class _VerificationCodePageState extends State<VerificationCodePage> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    timer.setOnTickListener((){
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    timer.release();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -58,9 +72,7 @@ class _VerificationCodePageState extends State<VerificationCodePage> {
               GestureDetector(
                 onTap: () async {
                   if (timer.isRunning) return;
-                  timer.launch(() {
-                    setState(() {});
-                  });
+                  timer.start();
                 },
                 child: Container(
                   width: 95,
